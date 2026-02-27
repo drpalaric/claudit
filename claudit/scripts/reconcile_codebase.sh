@@ -106,7 +106,7 @@ for f in "${ENV_FILES[@]}"; do
   if [[ -f "$ROOT/$f" ]]; then
     echo "  FOUND: $f"
     echo "  Variables defined:"
-    grep -P '^[A-Z_][A-Z0-9_]*=' "$ROOT/$f" 2>/dev/null | sed 's/=.*//' | sed 's/^/    /' || true
+    grep -E '^[A-Z_][A-Z0-9_]*=' "$ROOT/$f" 2>/dev/null | sed 's/=.*//' | sed 's/^/    /' || true
   fi
 done
 echo ""
@@ -169,7 +169,7 @@ fi
 # --- Extract likely commands from Makefile ---
 if [[ -f "$ROOT/Makefile" ]]; then
   echo "=== Makefile targets ==="
-  grep -P '^[a-zA-Z0-9_-]+:' "$ROOT/Makefile" 2>/dev/null | sed 's/:.*$//' | sed 's/^/  /' | head -20
+  grep -E '^[a-zA-Z0-9_-]+:' "$ROOT/Makefile" 2>/dev/null | sed 's/:.*$//' | sed 's/^/  /' | head -20
   echo ""
 fi
 
