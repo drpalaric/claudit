@@ -1,5 +1,28 @@
 # Changelog
 
+## 2026-02-27 (v8)
+
+### Changed
+
+- **SKILL.md**: Step 7 now runs in **both** audit and generation modes. Previously, `CLAUDE.md.draft` was only produced when no CLAUDE.md existed (generation mode). Now in audit mode, the draft starts from the existing CLAUDE.md and applies all HIGH, CRITICAL, and concrete MEDIUM findings from the report — including the full directory tree from reconciliation. The user always gets an actionable draft file, not just a report.
+
+- **SKILL.md** (guardrails, frontmatter, header): Updated to reflect that `CLAUDE.md.draft` is produced in both modes.
+
+- **references/templates.md**: Updated summary line — draft note now applies to both modes, not just generation mode.
+
+- **README.md**: Updated "What it does" section — audit mode now mentions the draft. Both modes share the `mv CLAUDE.md.draft CLAUDE.md` instruction.
+
+### Files Changed
+
+| File | Change Type |
+|---|---|
+| `SKILL.md` | Modified (Step 7 both modes, guardrails, frontmatter, header, Step 1 routing, Step 5 ending) |
+| `references/templates.md` | Modified (summary line) |
+| `README.md` | Modified (audit mode description) |
+| `CHANGELOG.md` | Updated |
+
+---
+
 ## 2026-02-27 (v7)
 
 ### Changed

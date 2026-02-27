@@ -141,7 +141,7 @@ _This section appears only when multiple CLAUDE.md files, rule files, or paralle
 
 [2-3 sentences. Overall assessment across all files. What is the single most important change the team should make first?]
 
-_In generation mode, add: "A starter file has been written to `CLAUDE.md.draft`. Review it and rename to `CLAUDE.md` when ready: `mv CLAUDE.md.draft CLAUDE.md`"_
+_Always add: "A draft has been written to `CLAUDE.md.draft` with [findings applied / starter content]. Review it and rename to `CLAUDE.md` when ready: `mv CLAUDE.md.draft CLAUDE.md`"_
 ```
 
 **Severity definitions:**

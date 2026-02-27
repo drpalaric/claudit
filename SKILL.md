@@ -1,11 +1,11 @@
 ---
 name: claudit
-description: Use when auditing, reviewing, improving, or checking CLAUDE.md files. Also trigger when the user says 'Claude is ignoring instructions', 'CLAUDE.md isn't working', 'onboarding to Claude Code', 'secret scanning config files', or 'CLAUDE.md best practices'. Traverses the full project tree, audits all CLAUDE.md files found, and produces a consolidated report. If no CLAUDE.md files exist, analyzes the codebase and writes a starter `CLAUDE.md.draft` for the user to review and rename.
+description: Use when auditing, reviewing, improving, or checking CLAUDE.md files. Also trigger when the user says 'Claude is ignoring instructions', 'CLAUDE.md isn't working', 'onboarding to Claude Code', 'secret scanning config files', or 'CLAUDE.md best practices'. Traverses the full project tree, audits all CLAUDE.md files found, produces a consolidated report, and writes a `CLAUDE.md.draft` with improvements applied. If no CLAUDE.md files exist, generates a starter draft from codebase analysis.
 ---
 
 # Claudit — CLAUDE.md Audit Skill
 
-Traverse a project tree, audit every `CLAUDE.md` file found, and produce a single consolidated findings report. If no `CLAUDE.md` files exist anywhere in the project, analyze the codebase and write a starter `CLAUDE.md.draft` for the user to review and rename.
+Traverse a project tree, audit every `CLAUDE.md` file found, produce a consolidated findings report, and write a `CLAUDE.md.draft` with improvements applied. If no `CLAUDE.md` files exist, generate a starter draft from codebase analysis. The user reviews the draft and renames it to `CLAUDE.md` when ready.
 
 ## Role
 
@@ -17,7 +17,7 @@ You are a senior engineering productivity and security consultant. Return struct
 
 These constraints apply to every claudit invocation regardless of context:
 
-- **Write only two file types:** the audit report (`CLAUDE-AUDIT-YYYY-MM-DD-vN.md`) and, in generation mode only, a draft starter file (`CLAUDE.md.draft`). **Never write to `CLAUDE.md` directly.**
+- **Write only two file types:** the audit report (`CLAUDE-AUDIT-YYYY-MM-DD-vN.md`) and a draft file (`CLAUDE.md.draft`). **Never write to `CLAUDE.md` directly.**
 - **Never create or modify a CLAUDE.md file.** Do not write, overwrite, or append to any `CLAUDE.md`, rule file, settings.json, or any other project file. The user renames `CLAUDE.md.draft` to `CLAUDE.md` themselves when ready.
 - **Never execute project commands without explicit user confirmation.** During codebase reconciliation, verify command existence (check package.json scripts, Makefile targets, etc.) but do not run build, test, or lint commands unless the user confirms.
 - **Never read .env file values.** Only report that .env files exist and which variable names they define. Do not read, display, or log the values.
@@ -40,7 +40,7 @@ Record the path of each discovered file. Also collect:
 - Any parallel AI config files: `.cursorrules`, `AGENTS.md`, `copilot-instructions.md`
 
 **The result of this step determines the mode:**
-- **One or more CLAUDE.md files found → Audit mode** (Steps 2 through 6)
+- **One or more CLAUDE.md files found → Audit mode** (Steps 2 through 7)
 - **Zero CLAUDE.md files found anywhere → Generation mode** (Steps 2 through 5, then Step 7)
 
 ### Step 2: Establish Context
@@ -108,25 +108,38 @@ Save the report as `CLAUDE-AUDIT-YYYY-MM-DD-vN.md` in the project root. To deter
 
 Display a brief summary in the conversation: total files audited, finding counts by severity, per-file scores and grades, and the single most important change.
 
-**In audit mode, the workflow proceeds to Step 6 if any file qualifies. Otherwise it ends here.** The report is the deliverable. The user decides what to act on.
+**In audit mode, the workflow proceeds to Step 6 if any file qualifies, then always continues to Step 7.** The report and draft are the deliverables. The user decides what to act on.
 
 ### Step 6: Advanced Patterns (Audit Mode, Mature Files Only)
 
 If any file scores 70+ and covers the basics, check for advanced opportunities. Read `references/advanced-patterns.md` for details. Flag as INFO. These findings are appended to the report produced in Step 5.
 
-### Step 7: Generate Starter CLAUDE.md (Generation Mode Only)
+### Step 7: Generate CLAUDE.md.draft
 
-This step runs only when Step 1 found zero CLAUDE.md files anywhere in the project.
+This step runs in **both modes** — audit and generation. It always produces a `CLAUDE.md.draft` file.
 
-The audit report from Step 5 is the source of truth. The generated CLAUDE.md is derived from it.
+The audit report from Step 5 is the source of truth. The draft is derived from the report findings and reconciliation data.
+
+#### In generation mode (no CLAUDE.md files found):
 
 1. Start with the Minimum Viable template from `references/templates.md`
 2. Populate it with concrete information discovered during reconciliation: detected stack, command names found in package.json/Makefile, environment variable names from .env.example
 3. For the directory structure section, apply the completeness criteria from `references/architecture-checks.md` criterion 1 (Codebase map): every depth-1 and depth-2 directory from reconciliation must appear, depth-3 uses `{pattern}/` grouping where siblings repeat. Annotate each entry with its purpose
 4. Address the HIGH and CRITICAL findings from the report — if the report says "missing build commands" and the reconciliation found them in package.json, include them
 5. Do not include speculative content. If the reconciliation didn't detect it, don't invent it. Leave placeholder brackets for anything the user needs to fill in
+
+#### In audit mode (existing CLAUDE.md files found):
+
+1. Start from the existing CLAUDE.md content (use the highest-scoring file if multiple exist)
+2. Apply all HIGH and CRITICAL findings from the report. For each finding, use the **Recommended** replacement text from the report to update the corresponding section
+3. Apply MEDIUM findings where the fix is concrete (e.g., adding missing directories, adding missing commands). Skip MEDIUM findings that require subjective decisions (e.g., file splitting)
+4. For the directory structure section, apply the same completeness criteria as generation mode: `references/architecture-checks.md` criterion 1
+5. Do not remove existing content unless a finding explicitly recommends removal (e.g., exposed secrets)
+
+#### Both modes — final steps:
+
 6. **Verify directory completeness**: Compare the directory structure against the reconciliation output's "Directory Counts" section. Count the depth-1 and depth-2 entries. If your count is lower, find the missing directories and add them
-7. Write the file to `CLAUDE.md.draft` in the project root. **Never write to `CLAUDE.md` directly.** Add a note to the audit report's summary: "A starter file has been written to `CLAUDE.md.draft`. Review it and rename to `CLAUDE.md` when ready."
+7. Write the file to `CLAUDE.md.draft` in the project root. **Never write to `CLAUDE.md` directly.** Add a note to the audit report's summary: "A draft has been written to `CLAUDE.md.draft`. Review it and rename to `CLAUDE.md` when ready: `mv CLAUDE.md.draft CLAUDE.md`"
 
 The user reviews the draft, makes any changes, and renames it to `CLAUDE.md` themselves.
 

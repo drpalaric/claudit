@@ -6,12 +6,14 @@ Unlike Claude's built-in `/init` command, claudit runs deterministic scripts aga
 
 ## What it does
 
-- **Audit mode**: Finds every `CLAUDE.md` in your project tree, runs security and structure scans, reconciles documented commands/directories against the real codebase, scores each file (A-F), and writes a consolidated findings report.
-- **Generation mode**: When no `CLAUDE.md` exists, analyzes the codebase and writes a `CLAUDE.md.draft` populated with detected stack, build commands, directory structure, and security guardrails. Review it and rename when ready:
+- **Audit mode**: Finds every `CLAUDE.md` in your project tree, runs security and structure scans, reconciles documented commands/directories against the real codebase, scores each file (A-F), writes a consolidated findings report, and produces a `CLAUDE.md.draft` with all improvements applied.
+- **Generation mode**: When no `CLAUDE.md` exists, analyzes the codebase and writes a `CLAUDE.md.draft` populated with detected stack, build commands, directory structure, and security guardrails.
 
-  ```bash
-  mv CLAUDE.md.draft CLAUDE.md
-  ```
+In both modes, review the draft and rename when ready:
+
+```bash
+mv CLAUDE.md.draft CLAUDE.md
+```
 
 The report is saved as `CLAUDE-AUDIT-YYYY-MM-DD-vN.md` in your project root. Claudit never writes to `CLAUDE.md` directly — existing files are never modified.
 
