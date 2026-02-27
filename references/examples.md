@@ -1,18 +1,15 @@
 # Before/After Examples
 
-Use these canonical examples when presenting findings. Reference the relevant example number in your finding when it matches the anti-pattern you've detected.
+Reference the relevant example number in findings when it matches the detected anti-pattern.
 
 ---
 
 ## Example 1: Embedded Style Rules (Engineering)
 
-A CLAUDE.md that embeds formatting rules duplicates the tool config and drifts the moment the config changes. The tool is always authoritative — reference it, don't restate it.
-
 ```
 # BEFORE — Anti-pattern
-Always use tabs for indentation. Exported functions must have doc comments.
-Error returns must be the last return value. Max line length is 120 characters.
-Package names must be lowercase. No underscores in identifiers.
+Always use tabs for indentation. Max line length is 120 characters.
+[... style rules restated from linter config ...]
 
 # AFTER — Correct pattern
 Code style is enforced by the project's linter (see config in repo root).
@@ -23,8 +20,6 @@ Fix all lint errors before marking any task complete.
 ---
 
 ## Example 2: Hardcoded Database Credentials (Infosec — CRITICAL)
-
-Credentials committed to a CLAUDE.md that lives in a git repo are exposed to everyone with repo access, in every git clone, forever.
 
 ```
 # BEFORE — CRITICAL risk
@@ -43,12 +38,9 @@ Database credentials are managed via environment variables.
 
 ## Example 3: Vague Security Guidance (Infosec/Engineering)
 
-Telling Claude to "be careful with security" provides zero actionable direction and creates false assurance.
-
 ```
 # BEFORE — Not actionable
-Be careful with security. Make sure code is secure and doesn't introduce
-vulnerabilities. Always use best practices.
+Be careful with security. Always use best practices.
 
 # AFTER — Actionable guardrails
 Security rules (do not override, do not disable):
@@ -65,8 +57,6 @@ Security rules (do not override, do not disable):
 ---
 
 ## Example 4: Missing Architecture Context (Engineering/Infosec)
-
-A CLAUDE.md that omits project structure causes Claude to make locally-correct changes that violate global invariants — the most expensive class of AI-assisted mistake.
 
 ```
 # BEFORE — No architecture context (Go service)
@@ -108,12 +98,9 @@ Test:         go test ./... -race -count=1
 
 ## Example 5: Undocumented Institutional Knowledge (Engineering)
 
-Teams know their footguns. Claude doesn't. Undocumented gotchas cause Claude to confidently reintroduce patterns that were removed from the codebase for good reason.
-
 ```
 # BEFORE — Rules without context (Python + C codebase)
-Don't use threads in the agent. Be careful modifying src/wal/. The old
-connection pool code in legacy/ shouldn't be used.
+Don't use threads in the agent. Be careful modifying src/wal/.
 
 # AFTER — Rules with rationale and boundary
 
@@ -146,17 +133,11 @@ still referenced by the upgrade path for clusters running < v3.2.
 
 ## Example 6: Verbose Narrative vs. Concise Directives (Engineering)
 
-CLAUDE.md is working context for an AI agent, not documentation for humans. Every paragraph that could be a bullet point wastes tokens and dilutes the signal.
-
 ```
 # BEFORE — Narrative style
 When working on this project, it's important to remember that we have a
-microservices architecture. The services communicate with each other through
-a message queue, and you should be aware that the order of messages matters
-in some cases. We've had issues in the past where developers accidentally
-introduced direct HTTP calls between services, which caused coupling problems
-and made it harder to deploy independently. Please try to avoid doing this
-and instead use the message queue for all inter-service communication.
+microservices architecture. [... 6 more lines of narrative explaining
+what could be said in 3 bullet points ...]
 
 # AFTER — Directive style
 ## Architecture

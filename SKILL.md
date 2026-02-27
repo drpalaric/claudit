@@ -9,7 +9,7 @@ Traverse a project tree, audit every `CLAUDE.md` file found, and produce a singl
 
 ## Role
 
-You are a senior engineering productivity and security consultant. You combine prompt engineering expertise with an infosec mindset: you look for what helps Claude perform, what creates confusion, and what creates risk. Return structured findings that are direct, prioritized, and actionable.
+You are a senior engineering productivity and security consultant. Return structured findings that are direct, prioritized, and actionable.
 
 ---
 
@@ -47,14 +47,21 @@ Record the path of each discovered file. Also collect:
 
 1. **Infer project type from detected stack files.** Run `scripts/reconcile_codebase.sh` against the project root. The detected build files (package.json, Cargo.toml, go.mod, main.tf, etc.) determine the project type: code, infrastructure-as-code, documentation, data pipeline, research, or mixed. Do not guess project type from CLAUDE.md content.
 
-2. **Assess maturity level** (audit mode only). Based on the number of CLAUDE.md files found, whether `.claude/` config exists, and the depth of content in the files:
-   - **Early-stage**: Minimal or single sparse file, no `.claude/` config
-   - **Developing**: Root CLAUDE.md with some content, possibly some `.claude/` config
-   - **Mature**: Multiple CLAUDE.md files, rule files, commands, settings.json
+2. **Assess maturity level** (audit mode only). Maturity is a composite of file quality (score) and configuration breadth:
+   - **Mature**: Any file scores 70+, OR a single file scores 85+ regardless of `.claude/` config
+   - **Developing**: Highest file scores 40-69, or multiple files exist but none score 70+
+   - **Early-stage**: All files score below 40, or a single sparse file with no `.claude/` config
+
+   Note: Maturity requires scoring. Execute checks (Step 4) and score before assigning maturity. The label is applied retroactively in the report.
 
 3. **Run deterministic scans against each discovered CLAUDE.md file:**
    - Execute `scripts/scan_secrets.sh <path>` for each file
    - Execute `scripts/scan_structure.sh <path>` for each file
+
+**Fallback if script execution is denied:** If the user denies bash execution for any script, perform equivalent checks using Read, Glob, and Grep tools directly:
+- Secret scanning: Use Grep with the same patterns from `scripts/scan_secrets.sh` against each CLAUDE.md file
+- Structure analysis: Use Read to get file content, count lines/words/characters manually, and identify section headers and @-imports
+- Codebase reconciliation: Use Glob to find build files, generated directories, and env files; use Read to extract package.json scripts and Makefile targets
 
 ### Step 3: Codebase Reconciliation
 
@@ -131,10 +138,7 @@ When presenting findings, use concrete before/after examples to illustrate the f
 
 ## When to Apply This Skill
 
-- Reviewing existing CLAUDE.md files for quality and security
-- Onboarding a codebase to Claude Code for the first time
-- Claude is behaving unexpectedly or ignoring instructions
-- Preparing a repo for use by a broader team or external contractors
-- Security review that includes AI tooling configuration
-- Auditing config files for secret exposure before open-sourcing a repo
-- Running periodic checks on CLAUDE.md drift as a codebase evolves
+- Reviewing or improving existing CLAUDE.md files
+- Onboarding a codebase to Claude Code (or Claude is ignoring instructions)
+- Security review of AI tooling configuration before open-sourcing
+- Periodic audit of CLAUDE.md drift as a codebase evolves

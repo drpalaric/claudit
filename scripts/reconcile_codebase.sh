@@ -53,6 +53,62 @@ for entry in "${STACK_FILES[@]}"; do
 done
 echo ""
 
+# --- Monorepo detection ---
+echo "=== Monorepo Detection ==="
+MONOREPO_TYPE=""
+
+if [[ -f "$ROOT/pnpm-workspace.yaml" ]]; then
+  MONOREPO_TYPE="pnpm"
+  echo "  Type: pnpm (pnpm-workspace.yaml)"
+elif [[ -f "$ROOT/lerna.json" ]]; then
+  MONOREPO_TYPE="lerna"
+  echo "  Type: Lerna (lerna.json)"
+elif [[ -f "$ROOT/nx.json" ]]; then
+  MONOREPO_TYPE="nx"
+  echo "  Type: Nx (nx.json)"
+elif [[ -f "$ROOT/rush.json" ]]; then
+  MONOREPO_TYPE="rush"
+  echo "  Type: Rush (rush.json)"
+elif [[ -f "$ROOT/turbo.json" ]]; then
+  MONOREPO_TYPE="turborepo"
+  echo "  Type: Turborepo (turbo.json)"
+elif [[ -f "$ROOT/package.json" ]] && command -v python3 &>/dev/null; then
+  HAS_WORKSPACES=$(python3 -c "
+import json
+try:
+    with open('$ROOT/package.json') as f:
+        data = json.load(f)
+    if 'workspaces' in data:
+        print('yes')
+except:
+    pass
+" 2>/dev/null)
+  if [[ "$HAS_WORKSPACES" == "yes" ]]; then
+    MONOREPO_TYPE="npm/yarn"
+    echo "  Type: npm/yarn workspaces (package.json)"
+  fi
+fi
+
+if [[ -n "$MONOREPO_TYPE" ]]; then
+  echo "  Scanning workspace directories for build files..."
+  for ws_dir in "$ROOT"/packages/*/ "$ROOT"/apps/*/ "$ROOT"/libs/*/ "$ROOT"/tools/*/ "$ROOT"/services/*/; do
+    if [[ -d "$ws_dir" ]]; then
+      ws_name="${ws_dir#$ROOT/}"
+      ws_name="${ws_name%/}"
+      for entry in "${STACK_FILES[@]}"; do
+        FILE="${entry%%:*}"
+        LABEL="${entry##*:}"
+        if [[ -f "$ws_dir$FILE" ]]; then
+          echo "    $ws_name: $LABEL ($FILE)"
+        fi
+      done
+    fi
+  done
+else
+  echo "  (not a monorepo)"
+fi
+echo ""
+
 # --- Detect common generated / vendor / build directories ---
 echo "=== Generated/Vendor/Build Directories ==="
 declare -a GEN_DIRS=(

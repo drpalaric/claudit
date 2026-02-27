@@ -1,12 +1,6 @@
 # Check 4: Institutional Knowledge and Project Nuance
 
-This is the hardest class of information to elicit from a team and the most valuable to document. It contains the "why" behind constraints, the gotchas that cause incidents, and the patterns that are deprecated but not yet removed.
-
-Without institutional knowledge, Claude will:
-- "Fix" intentional workarounds that exist for good reasons
-- Reintroduce patterns that were removed due to past incidents
-- Make changes in high-risk areas without awareness of their sensitivity
-- Produce technically correct output that violates team conventions or compliance requirements
+Documents the "why" behind constraints, the gotchas that cause incidents, and deprecated-but-present patterns.
 
 ## Criteria
 

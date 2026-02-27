@@ -1,7 +1,5 @@
 # Check 5: Instruction Clarity and Specificity
 
-Instructions Claude cannot act on are worse than no instructions — they consume context and create false confidence.
-
 1. **Vague verbs**: Flag phrases like "be careful with", "handle properly", "use best practices for", "make sure it's secure". Replace with specific, observable actions: *"Before deleting any file, confirm with the user"* or *"After every code change, run `[test command]` and report failures."*
 
 2. **Contradictory instructions**: Scan for logical conflicts — e.g., *"Always ask before running commands"* alongside *"Run tests automatically after each change."* Flag the conflict and note which instruction takes precedence, or ask the user to decide.
@@ -22,8 +20,8 @@ Instructions Claude cannot act on are worse than no instructions — they consum
 
 6. **Missing rationale on important rules**: Constraints without a "why" are treated as optional suggestions. For any rule that a developer might reasonably question, add a one-line reason. This is especially important for rules that prohibit common patterns — Claude may silently consider them outdated. See Check 4 for detailed guidance.
 
-7. **Verbose or narrative writing style**: CLAUDE.md content is consumed by an AI agent as working context — every word costs tokens and dilutes focus. Flag paragraphs that could be bullet points, explanations that could be code examples, and preamble that adds no directive. Principles:
+7. **Verbose or narrative writing style**: Flag paragraphs that could be bullet points, explanations that could be code examples, and preamble that adds no directive. Principles:
    - Lead with the rule, explain "why" second (if needed at all)
    - Show with code examples rather than describing in prose
-   - Use bullet points over paragraphs — scannable beats readable
-   - Skip the obvious — don't restate what the code or tooling already makes clear
+   - Use bullet points over paragraphs
+   - Skip the obvious

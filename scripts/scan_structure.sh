@@ -48,21 +48,21 @@ fi
 echo ""
 
 # --- @-import detection ---
-AT_IMPORTS=$(grep -cP '^@|[^\\]@[a-zA-Z0-9_./-]+' "$TARGET" 2>/dev/null || echo "0")
+AT_IMPORTS=$(grep -cE '(^|[[:space:]])@([a-zA-Z0-9_./-]*/[a-zA-Z0-9_.-]+|[a-zA-Z0-9_./-]+\.(md|ts|tsx|js|jsx|json|py|go|rs|rb|sh|ya?ml|toml|css|html|sql|cfg|ini|txt))([[:space:]]|$)' "$TARGET" 2>/dev/null || echo "0")
 echo "@-imports detected: $AT_IMPORTS"
 if [[ "$AT_IMPORTS" -gt 0 ]]; then
   echo "  Files referenced via @-import (loaded on every invocation):"
-  grep -nP '^@|[^\\]@[a-zA-Z0-9_./-]+' "$TARGET" 2>/dev/null | sed 's/^/    /'
+  grep -nE '(^|[[:space:]])@([a-zA-Z0-9_./-]*/[a-zA-Z0-9_.-]+|[a-zA-Z0-9_./-]+\.(md|ts|tsx|js|jsx|json|py|go|rs|rb|sh|ya?ml|toml|css|html|sql|cfg|ini|txt))([[:space:]]|$)' "$TARGET" 2>/dev/null | sed 's/^/    /'
 fi
 echo ""
 
 # --- Section headers ---
 echo "Section headers found:"
-grep -nP '^#{1,4}\s' "$TARGET" 2>/dev/null | sed 's/^/  /' || echo "  (none)"
+grep -nE '^#{1,4}[[:space:]]' "$TARGET" 2>/dev/null | sed 's/^/  /' || echo "  (none)"
 echo ""
 
 # --- Embedded code blocks (potential inlined configs) ---
-CODE_BLOCKS=$(grep -c '```' "$TARGET" 2>/dev/null || echo "0")
+CODE_BLOCKS=$(grep -c '```' "$TARGET" 2>/dev/null) || CODE_BLOCKS=0
 CODE_BLOCKS_PAIRS=$(( CODE_BLOCKS / 2 ))
 echo "Code blocks: $CODE_BLOCKS_PAIRS"
 echo ""

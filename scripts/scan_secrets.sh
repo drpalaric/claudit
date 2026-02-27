@@ -25,7 +25,7 @@ echo "Date: $(date -u +%Y-%m-%dT%H:%M:%SZ)"
 echo ""
 
 # --- AWS Access Key IDs ---
-if grep -nP 'AKIA[A-Z0-9]{16}' "$TARGET" 2>/dev/null; then
+if grep -nE 'AKIA[A-Z0-9]{16}' "$TARGET" 2>/dev/null; then
   echo "CRITICAL: AWS Access Key ID detected (lines above)"
   FOUND=1
 fi
@@ -38,50 +38,50 @@ fi
 
 # --- Generic API keys/tokens/bearer tokens ---
 # Looks for common patterns: key=, token=, bearer, api_key, apikey, secret=
-if grep -niP '(api[_-]?key|api[_-]?secret|access[_-]?token|bearer\s+[A-Za-z0-9\-._~+/]+=*|auth[_-]?token)\s*[=:]\s*["\x27]?[A-Za-z0-9\-._~+/]{20,}' "$TARGET" 2>/dev/null; then
+if grep -niE '(api[_-]?key|api[_-]?secret|access[_-]?token|bearer[[:space:]]+[A-Za-z0-9._~+/=-]+=*|auth[_-]?token)[[:space:]]*[=:][[:space:]]*["'"'"']?[A-Za-z0-9._~+/-]{20,}' "$TARGET" 2>/dev/null; then
   echo "CRITICAL: API key or token pattern detected (lines above)"
   FOUND=1
 fi
 
 # --- Database connection strings with credentials ---
-if grep -nP '(postgres|mysql|mongodb|redis|amqp)://[^:]+:[^@]+@' "$TARGET" 2>/dev/null; then
+if grep -nE '(postgres|mysql|mongodb|redis|amqp)://[^:]+:[^@]+@' "$TARGET" 2>/dev/null; then
   echo "CRITICAL: Database connection string with embedded credentials (lines above)"
   FOUND=1
 fi
 
 # --- RFC-1918 private IP addresses ---
-if grep -nP '\b(10\.\d{1,3}\.\d{1,3}\.\d{1,3}|172\.(1[6-9]|2[0-9]|3[01])\.\d{1,3}\.\d{1,3}|192\.168\.\d{1,3}\.\d{1,3})\b' "$TARGET" 2>/dev/null; then
+if grep -nE '(10\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}|172\.(1[6-9]|2[0-9]|3[01])\.[0-9]{1,3}\.[0-9]{1,3}|192\.168\.[0-9]{1,3}\.[0-9]{1,3})' "$TARGET" 2>/dev/null; then
   echo "HIGH: RFC-1918 private IP address detected (lines above)"
   FOUND=1
 fi
 
 # --- Internal hostnames (common patterns) ---
-if grep -niP '\b[a-z0-9-]+\.(internal|corp|local|lan|private|intranet)\b' "$TARGET" 2>/dev/null; then
+if grep -niE '[a-z0-9-]+\.(internal|corp|local|lan|private|intranet)' "$TARGET" 2>/dev/null; then
   echo "HIGH: Internal hostname pattern detected (lines above)"
   FOUND=1
 fi
 
 # --- Hardcoded user home directories ---
-if grep -nP '/(Users|home)/[a-zA-Z][a-zA-Z0-9._-]+/' "$TARGET" 2>/dev/null; then
+if grep -nE '/(Users|home)/[a-zA-Z][a-zA-Z0-9._-]+/' "$TARGET" 2>/dev/null; then
   echo "MEDIUM: Hardcoded user home directory path detected (lines above)"
   FOUND=1
 fi
 
 # --- GitHub personal access tokens ---
-if grep -nP 'ghp_[A-Za-z0-9]{36}' "$TARGET" 2>/dev/null; then
+if grep -nE 'ghp_[A-Za-z0-9]{36}' "$TARGET" 2>/dev/null; then
   echo "CRITICAL: GitHub personal access token detected (lines above)"
   FOUND=1
 fi
 
 # --- Slack tokens ---
-if grep -nP 'xox[baprs]-[A-Za-z0-9\-]+' "$TARGET" 2>/dev/null; then
+if grep -nE 'xox[baprs]-[A-Za-z0-9-]+' "$TARGET" 2>/dev/null; then
   echo "CRITICAL: Slack token detected (lines above)"
   FOUND=1
 fi
 
 # --- Generic high-entropy strings that look like secrets (base64, 40+ chars) ---
 # Intentionally conservative — only flags in key/secret/token context
-if grep -nP '(secret|password|credential|token)\s*[=:]\s*["\x27]?[A-Za-z0-9+/]{40,}=*' "$TARGET" 2>/dev/null; then
+if grep -nE '(secret|password|credential|token)[[:space:]]*[=:][[:space:]]*["'"'"']?[A-Za-z0-9+/]{40,}=*' "$TARGET" 2>/dev/null; then
   echo "HIGH: High-entropy string in secret/password/token context (lines above)"
   FOUND=1
 fi
