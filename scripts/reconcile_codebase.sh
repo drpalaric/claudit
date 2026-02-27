@@ -167,10 +167,10 @@ for f in "${ENV_FILES[@]}"; do
 done
 echo ""
 
-# --- Top-level directory structure ---
-echo "=== Top-Level Directory Structure ==="
-# List directories up to depth 2, excluding hidden dirs, node_modules, vendor
-find "$ROOT" -maxdepth 2 -type d \
+# --- Directory structure ---
+echo "=== Directory Structure ==="
+# List directories up to depth 3, excluding hidden dirs and generated/vendor/build dirs
+find "$ROOT" -maxdepth 3 -type d \
   -not -path '*/\.*' \
   -not -path '*/node_modules*' \
   -not -path '*/vendor*' \
@@ -179,7 +179,10 @@ find "$ROOT" -maxdepth 2 -type d \
   -not -path '*/dist*' \
   -not -path '*/build*' \
   -not -path '*/.next*' \
-  2>/dev/null | sort | sed "s|$ROOT/||" | sed 's/^/  /' | head -60
+  -not -path '*/*egg-info*' \
+  -not -path '*/coverage' \
+  -not -path '*/coverage/*' \
+  2>/dev/null | sort | sed "s|$ROOT/||" | sed 's/^/  /' | head -100
 echo ""
 
 # --- Check for CI/CD config (may contain build commands) ---

@@ -1,5 +1,26 @@
 # Changelog
 
+## 2026-02-27 (v2)
+
+### Fixed
+
+- **scripts/reconcile_codebase.sh**: Directory structure scan was too shallow (`maxdepth 2`), missing depth-3 directories like `content/docs/developer-guide/`, `layouts/partials/components/`, `static/js/modules/`. Increased to `maxdepth 3`. Added `*/*egg-info*` and `*/coverage` exclusions to filter Python build artifacts and test coverage output from the tree. Increased output cap from `head -60` to `head -100` to accommodate the deeper scan.
+
+- **references/templates.md**: Minimum Viable template constrained directory structure to "[3-8 line tree]", causing Claude to omit directories it knew about from reconciliation output. Replaced with open-ended guidance referencing all significant directories from reconciliation.
+
+- **SKILL.md** (Step 7): Added explicit instruction (new item 3) requiring ALL significant directories from reconciliation output in the generated CLAUDE.md — not just top-level directories. Renumbered subsequent items.
+
+### Files Changed
+
+| File | Change Type |
+|---|---|
+| `scripts/reconcile_codebase.sh` | Modified (maxdepth 2→3, added exclusions, head 60→100) |
+| `references/templates.md` | Modified (removed 3-8 line constraint) |
+| `SKILL.md` | Modified (Step 7 directory completeness instruction) |
+| `CHANGELOG.md` | Updated |
+
+---
+
 ## 2026-02-27
 
 ### Fixed

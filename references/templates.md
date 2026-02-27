@@ -14,7 +14,7 @@ Test:    [exact command]
 Lint:    [exact command]
 
 ## Directory structure
-[3-8 line tree of major directories with one-line purpose for each]
+[Tree of all significant directories with one-line purpose for each — include every top-level directory and important subdirectories from the reconciliation output]
 
 ## Key constraints
 - [Most important architectural rule — e.g., "services never call the database directly"]
