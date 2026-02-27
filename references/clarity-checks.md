@@ -16,7 +16,7 @@
    ```
    The specific tools vary by language. What matters is that Claude knows the exact invocation — not a description of what to run.
 
-5. **Missing tool or runtime version constraints**: If the project has strict version requirements (Node 20+, Python 3.11+, Go 1.22+), they should be stated. This prevents Claude from suggesting deprecated APIs or incompatible patterns.
+5. **Missing tool or runtime version constraints**: If the project has strict version requirements (Node 20+, Python 3.11+, Go 1.22+, Java 21+), they should be stated. For Java projects, also note whether to use the Maven/Gradle wrapper (`./mvnw`, `./gradlew`) instead of the global command. This prevents Claude from suggesting deprecated APIs or incompatible patterns.
 
 6. **Missing rationale on important rules**: Constraints without a "why" are treated as optional suggestions. For any rule that a developer might reasonably question, add a one-line reason. This is especially important for rules that prohibit common patterns — Claude may silently consider them outdated. See Check 4 for detailed guidance.
 

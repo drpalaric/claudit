@@ -34,6 +34,7 @@ declare -a STACK_FILES=(
   "Gemfile:Ruby"
   "pom.xml:Java (Maven)"
   "build.gradle:Java/Kotlin (Gradle)"
+  "build.gradle.kts:Java/Kotlin (Gradle Kotlin DSL)"
   "meson.build:Meson"
   "CMakeLists.txt:CMake"
   "Makefile:Make"
@@ -208,6 +209,8 @@ declare -a GEN_DIRS=(
   "build"
   ".next"
   "target"
+  ".gradle"
+  ".m2"
   "__pycache__"
   ".tox"
   "coverage"
@@ -266,6 +269,8 @@ FIND_EXCLUDES=(
   -not -path '*/vendor*'
   -not -path '*/__pycache__*'
   -not -path '*/target*'
+  -not -path '*/.gradle*'
+  -not -path '*/.m2*'
   -not -path '*/dist*'
   -not -path '*/build*'
   -not -path '*/.next*'
@@ -324,6 +329,93 @@ except Exception as e:
 " 2>/dev/null || echo "  (could not parse)"
   else
     echo "  (python3 not available for JSON parsing)"
+  fi
+  echo ""
+fi
+
+# --- Extract likely commands from Maven/Gradle ---
+if [[ -f "$ROOT/pom.xml" ]]; then
+  echo "=== Maven Build Configuration ==="
+  # Detect wrapper vs global
+  if [[ -f "$ROOT/mvnw" ]]; then
+    MVN_CMD="./mvnw"
+    echo "  Maven wrapper: ./mvnw (use this, not 'mvn')"
+  else
+    MVN_CMD="mvn"
+    echo "  Maven wrapper: not found (uses global 'mvn')"
+  fi
+  # Extract common lifecycle phases and plugin goals from pom.xml
+  echo "  Common commands:"
+  echo "    Build:   $MVN_CMD clean install"
+  echo "    Test:    $MVN_CMD test"
+  echo "    Package: $MVN_CMD package"
+  # Check for common plugins
+  if grep -q 'maven-checkstyle-plugin\|checkstyle' "$ROOT/pom.xml" 2>/dev/null; then
+    echo "    Lint:    $MVN_CMD checkstyle:check"
+  fi
+  if grep -q 'spotbugs-maven-plugin\|findbugs' "$ROOT/pom.xml" 2>/dev/null; then
+    echo "    Audit:   $MVN_CMD spotbugs:check"
+  fi
+  if grep -q 'fmt-maven-plugin\|spotless' "$ROOT/pom.xml" 2>/dev/null; then
+    echo "    Format:  $MVN_CMD spotless:check (or fmt:check)"
+  fi
+  if grep -q 'spring-boot-maven-plugin' "$ROOT/pom.xml" 2>/dev/null; then
+    echo "    Run:     $MVN_CMD spring-boot:run"
+  fi
+  # Extract profiles
+  PROFILES=$(sed -n 's/.*<id>\([^<]*\)<\/id>.*/\1/p' "$ROOT/pom.xml" 2>/dev/null | head -10)
+  if [[ -n "$PROFILES" ]]; then
+    echo "  Profiles:"
+    echo "$PROFILES" | sed 's/^/    /'
+  fi
+  # Java version from pom.xml
+  JAVA_VER=$(sed -n 's/.*<java.version>\([^<]*\)<\/java.version>.*/\1/p' "$ROOT/pom.xml" 2>/dev/null | head -1)
+  if [[ -z "$JAVA_VER" ]]; then
+    JAVA_VER=$(sed -n 's/.*<maven.compiler.source>\([^<]*\)<\/maven.compiler.source>.*/\1/p' "$ROOT/pom.xml" 2>/dev/null | head -1)
+  fi
+  if [[ -n "$JAVA_VER" ]]; then
+    echo "  Java version: $JAVA_VER"
+  fi
+  echo ""
+fi
+
+if [[ -f "$ROOT/build.gradle" || -f "$ROOT/build.gradle.kts" ]]; then
+  GRADLE_FILE="build.gradle"
+  [[ -f "$ROOT/build.gradle.kts" ]] && GRADLE_FILE="build.gradle.kts"
+  echo "=== Gradle Build Configuration ==="
+  # Detect wrapper vs global
+  if [[ -f "$ROOT/gradlew" ]]; then
+    GRADLE_CMD="./gradlew"
+    echo "  Gradle wrapper: ./gradlew (use this, not 'gradle')"
+  else
+    GRADLE_CMD="gradle"
+    echo "  Gradle wrapper: not found (uses global 'gradle')"
+  fi
+  echo "  Common commands:"
+  echo "    Build:   $GRADLE_CMD build"
+  echo "    Test:    $GRADLE_CMD test"
+  echo "    Clean:   $GRADLE_CMD clean"
+  # Check for common plugins
+  if grep -qE 'checkstyle|pmd|spotbugs' "$ROOT/$GRADLE_FILE" 2>/dev/null; then
+    echo "    Lint:    $GRADLE_CMD check"
+  fi
+  if grep -q 'spotless' "$ROOT/$GRADLE_FILE" 2>/dev/null; then
+    echo "    Format:  $GRADLE_CMD spotlessCheck"
+  fi
+  if grep -qE 'spring-boot|org.springframework.boot' "$ROOT/$GRADLE_FILE" 2>/dev/null; then
+    echo "    Run:     $GRADLE_CMD bootRun"
+  fi
+  # Extract custom tasks
+  CUSTOM_TASKS=$(grep -E '^\s*task[s]?\s+[a-zA-Z]|^\s*tasks\.register' "$ROOT/$GRADLE_FILE" 2>/dev/null | sed 's/.*task[s]\{0,1\}[[:space:]]*//;s/[[:space:]]*[({].*//' | sed 's/\.register[[:space:]]*("[[:space:]]*//' | sed 's/".*//' | head -10)
+  if [[ -n "$CUSTOM_TASKS" ]]; then
+    echo "  Custom tasks:"
+    echo "$CUSTOM_TASKS" | sed 's/^/    /'
+  fi
+  # Java version from gradle
+  JAVA_VER=$(grep -E 'sourceCompatibility|JavaVersion|jvmTarget|java.toolchain' "$ROOT/$GRADLE_FILE" 2>/dev/null | head -3)
+  if [[ -n "$JAVA_VER" ]]; then
+    echo "  Java/JVM version hints:"
+    echo "$JAVA_VER" | sed 's/^[[:space:]]*/    /'
   fi
   echo ""
 fi

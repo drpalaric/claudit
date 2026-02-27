@@ -131,7 +131,51 @@ still referenced by the upgrade path for clusters running < v3.2.
 
 ---
 
-## Example 6: Verbose Narrative vs. Concise Directives (Engineering)
+## Example 6: Missing Java Build Context (Engineering)
+
+```
+# BEFORE — No build context (Spring Boot + Gradle)
+This is a Java project using Spring Boot. Run tests before pushing.
+
+# AFTER — Build-aware with constraints
+## Commands
+Build:   ./gradlew build
+Test:    ./gradlew test
+Lint:    ./gradlew checkstyleMain checkstyleTest
+Format:  ./gradlew spotlessCheck (fix: ./gradlew spotlessApply)
+Run:     ./gradlew bootRun
+
+Always use ./gradlew (the wrapper), never 'gradle' directly.
+The wrapper pins Gradle 8.5 — using a different version may break the build.
+
+## Project structure
+src/
+  main/
+    java/com/acme/billing/
+      BillingApplication.java — @SpringBootApplication entry point
+      config/       Spring @Configuration classes. Do not scatter @Bean outside this package.
+      controller/   REST controllers. Validate input here, delegate to service layer.
+      service/      Business logic. Services call repositories — never JPA EntityManager directly.
+      repository/   Spring Data JPA interfaces. Custom queries use @Query, not native SQL.
+      model/        JPA entities. Always use Long for IDs. Do not add business logic to entities.
+      dto/          Request/response DTOs. Never return entity objects from controllers.
+    resources/
+      application.yml        — Main config (profiles: dev, staging, prod)
+      application-dev.yml    — Dev overrides (H2 in-memory DB)
+      db/migration/          — Flyway migrations, sequential, never edit after merge
+  test/
+    java/com/acme/billing/   — Mirror structure of main. Use @SpringBootTest sparingly — prefer slices.
+
+## Key constraints
+- Java 21 (set in build.gradle via toolchain). Do not use APIs removed after Java 17.
+- Flyway migrations in db/migration/ are immutable once merged. Add new files only.
+- application.yml uses Spring profiles. Never hardcode environment-specific values in main profile.
+- DTOs in dto/ must not import from model/. Use MapStruct mappers in service/ for conversion.
+```
+
+---
+
+## Example 7: Verbose Narrative vs. Concise Directives (Engineering)
 
 ```
 # BEFORE — Narrative style

@@ -1,5 +1,36 @@
 # Changelog
 
+## 2026-02-27 (v9)
+
+### Changed
+
+- **scripts/reconcile_codebase.sh**: Added Java/JVM ecosystem support:
+  - **Stack detection**: Added `build.gradle.kts` (Gradle Kotlin DSL) to STACK_FILES
+  - **Generated directories**: Added `.gradle/` (Gradle cache) and `.m2/` (local Maven repo) to GEN_DIRS and find exclusions
+  - **Maven command extraction**: Detects `mvnw` wrapper, shows common lifecycle commands (`clean install`, `test`, `package`), extracts plugin-specific goals (checkstyle, spotbugs, spotless, spring-boot), lists Maven profiles, reads Java version from `<java.version>` or `<maven.compiler.source>`
+  - **Gradle command extraction**: Detects `gradlew` wrapper, shows common tasks (`build`, `test`, `clean`), detects plugins (checkstyle/pmd/spotbugs, spotless, Spring Boot), extracts custom task definitions, reads Java/JVM version hints from `sourceCompatibility`/`JavaVersion`/`jvmTarget`/`toolchain`
+
+- **references/examples.md**: Added Example 6 (Java/Spring Boot) — before/after showing a minimal "run tests before pushing" vs. full build context with wrapper usage, project structure (controller/service/repository/model/dto layering), Flyway migration immutability, profile management, and DTO/entity separation. Existing Example 6 renumbered to Example 7.
+
+- **references/structure-checks.md**: Added Java linter tools (checkstyle, spotless, google-java-format) alongside existing eslint/ruff/gofmt/prettier in criterion 2.
+
+- **references/clarity-checks.md**: Added Java 21+ to version constraint examples in criterion 5. Added note about Maven/Gradle wrapper usage (`./mvnw`, `./gradlew`).
+
+- **references/environment-checks.md**: Added concrete no-go directory examples (target/, build/, .gradle/, etc.) to criterion 6 for context window management guidance.
+
+### Files Changed
+
+| File | Change Type |
+|---|---|
+| `scripts/reconcile_codebase.sh` | Modified (build.gradle.kts detection, .gradle/.m2 dirs, Maven/Gradle command extraction) |
+| `references/examples.md` | Modified (new Java/Spring Boot Example 6, renumbered Example 7) |
+| `references/structure-checks.md` | Modified (Java linter tools) |
+| `references/clarity-checks.md` | Modified (Java version, wrapper note) |
+| `references/environment-checks.md` | Modified (no-go dir examples) |
+| `CHANGELOG.md` | Updated |
+
+---
+
 ## 2026-02-27 (v8)
 
 ### Changed
