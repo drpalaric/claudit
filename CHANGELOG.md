@@ -1,5 +1,33 @@
 # Changelog
 
+## 2026-02-27 (v7)
+
+### Changed
+
+- **scripts/reconcile_codebase.sh** (Monorepo Detection): Expanded from JS/TS-only detection to cover all major ecosystems. Now detects:
+  - **Rust**: Cargo workspace (`[workspace]` in Cargo.toml), lists members
+  - **Go**: Go workspace (`go.work`), lists modules
+  - **Java/Maven**: Multi-module (`<modules>` in pom.xml), lists modules
+  - **Java/Gradle**: Multi-project (`include` in settings.gradle/.kts), lists projects
+  - **Python**: Multiple `pyproject.toml` files in subdirectories (>=2 sub-packages)
+  - **Bazel**: `WORKSPACE`, `WORKSPACE.bazel`, or `MODULE.bazel`
+  - **Pants**: `pants.toml`
+  - Existing JS/TS detection unchanged (pnpm, Lerna, Nx, Rush, Turborepo, npm/yarn workspaces)
+  - Workspace directory scanning now includes non-JS conventions: `crates/`, `modules/`, `plugins/`, `components/`, `internal/` (in addition to existing `packages/`, `apps/`, `libs/`, `tools/`, `services/`)
+
+### Fixed
+
+- **scripts/reconcile_codebase.sh**: Replaced `grep -oP` (GNU-only Perl regex) with portable `sed` alternatives. macOS ships BSD grep which lacks the `-P` flag, causing errors on Cargo workspace member listing, Maven module extraction, and Gradle project parsing.
+
+### Files Changed
+
+| File | Change Type |
+|---|---|
+| `scripts/reconcile_codebase.sh` | Modified (monorepo detection for Rust, Go, Maven, Gradle, Python, Bazel, Pants) |
+| `CHANGELOG.md` | Updated |
+
+---
+
 ## 2026-02-27 (v6)
 
 ### Changed

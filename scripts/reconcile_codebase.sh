@@ -63,6 +63,7 @@ echo ""
 echo "=== Monorepo Detection ==="
 MONOREPO_TYPE=""
 
+# JavaScript/TypeScript monorepo tools
 if [[ -f "$ROOT/pnpm-workspace.yaml" ]]; then
   MONOREPO_TYPE="pnpm"
   echo "  Type: pnpm (pnpm-workspace.yaml)"
@@ -95,9 +96,92 @@ except:
   fi
 fi
 
+# Rust: Cargo workspace
+if [[ -z "$MONOREPO_TYPE" && -f "$ROOT/Cargo.toml" ]]; then
+  if grep -q '^\[workspace\]' "$ROOT/Cargo.toml" 2>/dev/null; then
+    MONOREPO_TYPE="cargo"
+    echo "  Type: Cargo workspace (Cargo.toml [workspace])"
+    # List workspace members
+    grep -A 20 '^\[workspace\]' "$ROOT/Cargo.toml" 2>/dev/null | sed -n 's/.*"\([^"]*\)".*/\1/p' | while read -r member; do
+      if [[ -d "$ROOT/$member" ]]; then
+        echo "    member: $member"
+      fi
+    done
+  fi
+fi
+
+# Go: workspace mode
+if [[ -z "$MONOREPO_TYPE" && -f "$ROOT/go.work" ]]; then
+  MONOREPO_TYPE="go-workspace"
+  echo "  Type: Go workspace (go.work)"
+  grep '^[[:space:]]*./' "$ROOT/go.work" 2>/dev/null | sed 's/^[[:space:]]*/    module: /'
+fi
+
+# Java/Kotlin: Maven multi-module
+if [[ -z "$MONOREPO_TYPE" && -f "$ROOT/pom.xml" ]]; then
+  if grep -q '<modules>' "$ROOT/pom.xml" 2>/dev/null; then
+    MONOREPO_TYPE="maven"
+    echo "  Type: Maven multi-module (pom.xml <modules>)"
+    sed -n 's/.*<module>\([^<]*\)<\/module>.*/\1/p' "$ROOT/pom.xml" 2>/dev/null | while read -r mod; do
+      echo "    module: $mod"
+    done
+  fi
+fi
+
+# Java/Kotlin: Gradle multi-project
+if [[ -z "$MONOREPO_TYPE" ]]; then
+  SETTINGS_GRADLE=""
+  if [[ -f "$ROOT/settings.gradle" ]]; then
+    SETTINGS_GRADLE="$ROOT/settings.gradle"
+  elif [[ -f "$ROOT/settings.gradle.kts" ]]; then
+    SETTINGS_GRADLE="$ROOT/settings.gradle.kts"
+  fi
+  if [[ -n "$SETTINGS_GRADLE" ]] && grep -qE "include\s*['\(]" "$SETTINGS_GRADLE" 2>/dev/null; then
+    MONOREPO_TYPE="gradle"
+    echo "  Type: Gradle multi-project ($SETTINGS_GRADLE)"
+    grep -E "include" "$SETTINGS_GRADLE" 2>/dev/null | sed "s/include//g;s/[\"'()]//g" | tr ',' '\n' | sed 's/^[[:space:]]*//;s/[[:space:]]*$//' | while read -r proj; do
+      [[ -n "$proj" ]] && echo "    project: $proj"
+    done
+  fi
+fi
+
+# Python: monorepo with multiple packages (multiple pyproject.toml in subdirs)
+if [[ -z "$MONOREPO_TYPE" ]]; then
+  PY_SUBPROJECTS=$(find "$ROOT" -maxdepth 2 -name "pyproject.toml" -not -path "$ROOT/pyproject.toml" 2>/dev/null | wc -l | tr -d ' ')
+  if [[ "$PY_SUBPROJECTS" -ge 2 ]]; then
+    MONOREPO_TYPE="python"
+    echo "  Type: Python monorepo ($PY_SUBPROJECTS sub-packages with pyproject.toml)"
+    find "$ROOT" -maxdepth 2 -name "pyproject.toml" -not -path "$ROOT/pyproject.toml" 2>/dev/null | sort | while read -r pf; do
+      pkg_dir="${pf%/pyproject.toml}"
+      pkg_name="${pkg_dir#$ROOT/}"
+      echo "    package: $pkg_name"
+    done
+  fi
+fi
+
+# Bazel workspace
+if [[ -z "$MONOREPO_TYPE" ]]; then
+  if [[ -f "$ROOT/WORKSPACE" || -f "$ROOT/WORKSPACE.bazel" || -f "$ROOT/MODULE.bazel" ]]; then
+    MONOREPO_TYPE="bazel"
+    BAZEL_FILE="WORKSPACE"
+    [[ -f "$ROOT/WORKSPACE.bazel" ]] && BAZEL_FILE="WORKSPACE.bazel"
+    [[ -f "$ROOT/MODULE.bazel" ]] && BAZEL_FILE="MODULE.bazel"
+    echo "  Type: Bazel workspace ($BAZEL_FILE)"
+  fi
+fi
+
+# Pants build system
+if [[ -z "$MONOREPO_TYPE" && -f "$ROOT/pants.toml" ]]; then
+  MONOREPO_TYPE="pants"
+  echo "  Type: Pants (pants.toml)"
+fi
+
 if [[ -n "$MONOREPO_TYPE" ]]; then
+  # Scan common workspace directory patterns for build files
   echo "  Scanning workspace directories for build files..."
-  for ws_dir in "$ROOT"/packages/*/ "$ROOT"/apps/*/ "$ROOT"/libs/*/ "$ROOT"/tools/*/ "$ROOT"/services/*/; do
+  for ws_dir in "$ROOT"/packages/*/ "$ROOT"/apps/*/ "$ROOT"/libs/*/ "$ROOT"/tools/*/ \
+                "$ROOT"/services/*/ "$ROOT"/crates/*/ "$ROOT"/modules/*/ "$ROOT"/plugins/*/ \
+                "$ROOT"/components/*/ "$ROOT"/internal/*/; do
     if [[ -d "$ws_dir" ]]; then
       ws_name="${ws_dir#$ROOT/}"
       ws_name="${ws_name%/}"
