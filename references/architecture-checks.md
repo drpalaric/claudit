@@ -2,7 +2,7 @@
 
 Missing architecture context causes locally-correct but globally-inconsistent changes.
 
-1. **Codebase map**: Does the file include a brief directory overview explaining the purpose of major directories? Flag as HIGH if absent. Example:
+1. **Codebase map**: Does the file include a directory overview explaining the purpose of directories? Flag as HIGH if absent. Check completeness against the reconciliation output's "Directory Counts" section: every depth-1 and depth-2 directory from the reconciliation must appear in the codebase map. Flag as MEDIUM if the map exists but is missing directories. For depth-3 directories, include individually unless many siblings follow a pattern (use `{pattern}/` placeholder). Example:
    ```
    cmd/          — Entrypoints (one per binary)
    internal/

@@ -170,19 +170,32 @@ echo ""
 # --- Directory structure ---
 echo "=== Directory Structure ==="
 # List directories up to depth 3, excluding hidden dirs and generated/vendor/build dirs
-find "$ROOT" -maxdepth 3 -type d \
-  -not -path '*/\.*' \
-  -not -path '*/node_modules*' \
-  -not -path '*/vendor*' \
-  -not -path '*/__pycache__*' \
-  -not -path '*/target*' \
-  -not -path '*/dist*' \
-  -not -path '*/build*' \
-  -not -path '*/.next*' \
-  -not -path '*/*egg-info*' \
-  -not -path '*/coverage' \
-  -not -path '*/coverage/*' \
+FIND_EXCLUDES=(
+  -not -path '*/\.*'
+  -not -path '*/node_modules*'
+  -not -path '*/vendor*'
+  -not -path '*/__pycache__*'
+  -not -path '*/target*'
+  -not -path '*/dist*'
+  -not -path '*/build*'
+  -not -path '*/.next*'
+  -not -path '*/*egg-info*'
+  -not -path '*/coverage'
+  -not -path '*/coverage/*'
+)
+find "$ROOT" -maxdepth 3 -type d "${FIND_EXCLUDES[@]}" \
   2>/dev/null | sort | sed "s|$ROOT/||" | sed 's/^/  /' | head -100
+echo ""
+
+# --- Directory counts by depth (for CLAUDE.md verification) ---
+echo "=== Directory Counts ==="
+D1=$(find "$ROOT" -mindepth 1 -maxdepth 1 -type d "${FIND_EXCLUDES[@]}" 2>/dev/null | wc -l | tr -d ' ')
+D2=$(find "$ROOT" -mindepth 2 -maxdepth 2 -type d "${FIND_EXCLUDES[@]}" 2>/dev/null | wc -l | tr -d ' ')
+D3=$(find "$ROOT" -mindepth 3 -maxdepth 3 -type d "${FIND_EXCLUDES[@]}" 2>/dev/null | wc -l | tr -d ' ')
+echo "  Depth 1: $D1 directories"
+echo "  Depth 2: $D2 directories"
+echo "  Depth 3: $D3 directories"
+echo "  Total:   $((D1 + D2 + D3)) directories"
 echo ""
 
 # --- Check for CI/CD config (may contain build commands) ---

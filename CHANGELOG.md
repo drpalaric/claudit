@@ -1,5 +1,41 @@
 # Changelog
 
+## 2026-02-27 (v5)
+
+### Changed
+
+- **references/architecture-checks.md** (criterion 1, Codebase map): Added directory completeness check. Previously only checked existence of a directory overview. Now requires every depth-1 and depth-2 directory from reconciliation to appear in the codebase map, with depth-3 using `{pattern}/` grouping. Flags as MEDIUM if the map exists but is incomplete. This is the authoritative location for the directory depth rules — Step 7 and the template reference it.
+
+- **SKILL.md** (Step 7, items 3 and 7): Simplified to reference `architecture-checks.md` criterion 1 instead of duplicating depth rules inline. Step 7 item 3 now says "apply the completeness criteria from architecture-checks.md criterion 1." Verification step (item 7) shortened.
+
+### Files Changed
+
+| File | Change Type |
+|---|---|
+| `references/architecture-checks.md` | Modified (criterion 1: added completeness check with depth rules) |
+| `SKILL.md` | Modified (Step 7 items 3, 7: reference architecture-checks instead of inline rules) |
+| `CHANGELOG.md` | Updated |
+
+---
+
+## 2026-02-27 (v4)
+
+### Fixed
+
+- **scripts/reconcile_codebase.sh**: Added "Directory Counts" section to reconciliation output, reporting depth-1, depth-2, depth-3, and total directory counts. Gives Claude a verifiable number to check the generated CLAUDE.md against. Refactored find exclusions into a shared `FIND_EXCLUDES` array to avoid duplication.
+
+- **SKILL.md** (Step 7): Added new item 7 — a post-generation verification step requiring Claude to compare the directory count in the generated CLAUDE.md against the reconciliation's "Directory Counts" section. If the count is lower, Claude must identify and add missing directories. Stronger wording alone (v3) was insufficient; Claude's summarization instinct overrides instructions without a concrete verification loop.
+
+### Files Changed
+
+| File | Change Type |
+|---|---|
+| `scripts/reconcile_codebase.sh` | Modified (added Directory Counts section, shared FIND_EXCLUDES) |
+| `SKILL.md` | Modified (Step 7 item 7: post-generation verification) |
+| `CHANGELOG.md` | Updated |
+
+---
+
 ## 2026-02-27 (v3)
 
 ### Fixed
