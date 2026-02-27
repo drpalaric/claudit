@@ -1,5 +1,27 @@
 # Changelog
 
+## 2026-02-27 (v6)
+
+### Changed
+
+- **SKILL.md**: Generation mode now writes to `CLAUDE.md.draft` instead of `CLAUDE.md` directly. Claudit never creates or modifies a `CLAUDE.md` file — the user renames the draft when ready. Updated guardrails, frontmatter description, header, Step 7 item 7, and report template summary text to reflect this.
+
+- **scripts/reconcile_codebase.sh**: Added `meson.build` (Meson), `CMakeLists.txt` (CMake), and Hugo config files (`hugo.toml`, `hugo.yaml`, `hugo.json`, `config.toml`) to the `STACK_FILES` detection array.
+
+- **README.md**: Added documentation for the `.draft` approach in the "What it does" section. Fixed trigger phrase claims — `/claudit` is the only guaranteed trigger; auto-matching from the skill description is not deterministic.
+
+### Files Changed
+
+| File | Change Type |
+|---|---|
+| `SKILL.md` | Modified (guardrails, description, Step 7: CLAUDE.md.draft) |
+| `scripts/reconcile_codebase.sh` | Modified (added Meson, CMake, Hugo to STACK_FILES) |
+| `references/templates.md` | Modified (report summary references CLAUDE.md.draft) |
+| `README.md` | Modified (.draft docs, trigger phrase correction) |
+| `CHANGELOG.md` | Updated |
+
+---
+
 ## 2026-02-27 (v5)
 
 ### Changed
