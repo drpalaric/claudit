@@ -1,0 +1,183 @@
+#!/usr/bin/env bash
+# reconcile_codebase.sh — Verify CLAUDE.md claims against the actual project
+# Usage: ./reconcile_codebase.sh <project-root>
+# Checks: generated directories, env vars, build files, directory structure
+
+set -euo pipefail
+
+if [[ $# -lt 1 ]]; then
+  echo "Usage: $0 <project-root>" >&2
+  exit 2
+fi
+
+ROOT="$1"
+
+if [[ ! -d "$ROOT" ]]; then
+  echo "ERROR: Directory not found: $ROOT" >&2
+  exit 2
+fi
+
+echo "=== Claudit Codebase Reconciliation ==="
+echo "Project root: $ROOT"
+echo "Date: $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+echo ""
+
+# --- Detect project type from build files ---
+echo "=== Detected Stack ==="
+declare -a STACK_FILES=(
+  "package.json:Node.js"
+  "Cargo.toml:Rust"
+  "go.mod:Go"
+  "pyproject.toml:Python (pyproject)"
+  "setup.py:Python (setup.py)"
+  "requirements.txt:Python (requirements)"
+  "Gemfile:Ruby"
+  "pom.xml:Java (Maven)"
+  "build.gradle:Java/Kotlin (Gradle)"
+  "Makefile:Make"
+  "Dockerfile:Docker"
+  "docker-compose.yml:Docker Compose"
+  "docker-compose.yaml:Docker Compose"
+  "terraform.tf:Terraform"
+  "main.tf:Terraform"
+  "serverless.yml:Serverless Framework"
+  "tsconfig.json:TypeScript"
+)
+
+for entry in "${STACK_FILES[@]}"; do
+  FILE="${entry%%:*}"
+  LABEL="${entry##*:}"
+  if [[ -f "$ROOT/$FILE" ]]; then
+    echo "  $LABEL ($FILE)"
+  fi
+done
+echo ""
+
+# --- Detect common generated / vendor / build directories ---
+echo "=== Generated/Vendor/Build Directories ==="
+declare -a GEN_DIRS=(
+  "node_modules"
+  "vendor"
+  "dist"
+  "build"
+  ".next"
+  "target"
+  "__pycache__"
+  ".tox"
+  "coverage"
+  ".nyc_output"
+  "generated"
+  "gen"
+  "src/generated"
+  "pkg/generated"
+  ".terraform"
+  ".serverless"
+  "out"
+  ".output"
+  ".nuxt"
+  ".cache"
+  "egg-info"
+)
+
+GEN_FOUND=0
+for d in "${GEN_DIRS[@]}"; do
+  if [[ -d "$ROOT/$d" ]]; then
+    echo "  FOUND: $d/"
+    GEN_FOUND=$((GEN_FOUND + 1))
+  fi
+done
+if [[ $GEN_FOUND -eq 0 ]]; then
+  echo "  (none detected)"
+fi
+echo ""
+
+# --- Detect environment variable files ---
+echo "=== Environment Variable Files ==="
+declare -a ENV_FILES=(
+  ".env.example"
+  ".env.template"
+  ".env.sample"
+  ".env.local.example"
+  ".env.development"
+  ".env.production"
+)
+
+for f in "${ENV_FILES[@]}"; do
+  if [[ -f "$ROOT/$f" ]]; then
+    echo "  FOUND: $f"
+    echo "  Variables defined:"
+    grep -P '^[A-Z_][A-Z0-9_]*=' "$ROOT/$f" 2>/dev/null | sed 's/=.*//' | sed 's/^/    /' || true
+  fi
+done
+echo ""
+
+# --- Top-level directory structure ---
+echo "=== Top-Level Directory Structure ==="
+# List directories up to depth 2, excluding hidden dirs, node_modules, vendor
+find "$ROOT" -maxdepth 2 -type d \
+  -not -path '*/\.*' \
+  -not -path '*/node_modules*' \
+  -not -path '*/vendor*' \
+  -not -path '*/__pycache__*' \
+  -not -path '*/target*' \
+  -not -path '*/dist*' \
+  -not -path '*/build*' \
+  -not -path '*/.next*' \
+  2>/dev/null | sort | sed "s|$ROOT/||" | sed 's/^/  /' | head -60
+echo ""
+
+# --- Check for CI/CD config (may contain build commands) ---
+echo "=== CI/CD Configuration ==="
+declare -a CI_FILES=(
+  ".github/workflows"
+  ".gitlab-ci.yml"
+  "Jenkinsfile"
+  ".circleci/config.yml"
+  ".travis.yml"
+  "bitbucket-pipelines.yml"
+)
+
+for f in "${CI_FILES[@]}"; do
+  if [[ -e "$ROOT/$f" ]]; then
+    echo "  FOUND: $f"
+  fi
+done
+echo ""
+
+# --- Extract likely build/test/lint commands from package.json ---
+if [[ -f "$ROOT/package.json" ]]; then
+  echo "=== package.json scripts ==="
+  # Use python if available, otherwise grep
+  if command -v python3 &>/dev/null; then
+    python3 -c "
+import json, sys
+try:
+    with open('$ROOT/package.json') as f:
+        data = json.load(f)
+    scripts = data.get('scripts', {})
+    for k, v in scripts.items():
+        print(f'  {k}: {v}')
+except Exception as e:
+    print(f'  Error reading package.json: {e}', file=sys.stderr)
+" 2>/dev/null || echo "  (could not parse)"
+  else
+    echo "  (python3 not available for JSON parsing)"
+  fi
+  echo ""
+fi
+
+# --- Extract likely commands from Makefile ---
+if [[ -f "$ROOT/Makefile" ]]; then
+  echo "=== Makefile targets ==="
+  grep -P '^[a-zA-Z0-9_-]+:' "$ROOT/Makefile" 2>/dev/null | sed 's/:.*$//' | sed 's/^/  /' | head -20
+  echo ""
+fi
+
+echo "=== Reconciliation Complete ==="
+echo ""
+echo "Use this output to verify that the CLAUDE.md accurately reflects:"
+echo "  1. The detected stack and project type"
+echo "  2. All generated/vendor directories are listed as no-go zones"
+echo "  3. Required environment variables are documented"
+echo "  4. Build/test/lint commands match what the project actually uses"
+echo "  5. The directory structure matches what the CLAUDE.md describes"
