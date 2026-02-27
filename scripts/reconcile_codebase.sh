@@ -34,6 +34,8 @@ declare -a STACK_FILES=(
   "Gemfile:Ruby"
   "pom.xml:Java (Maven)"
   "build.gradle:Java/Kotlin (Gradle)"
+  "meson.build:Meson"
+  "CMakeLists.txt:CMake"
   "Makefile:Make"
   "Dockerfile:Docker"
   "docker-compose.yml:Docker Compose"
@@ -42,6 +44,10 @@ declare -a STACK_FILES=(
   "main.tf:Terraform"
   "serverless.yml:Serverless Framework"
   "tsconfig.json:TypeScript"
+  "hugo.toml:Hugo"
+  "hugo.yaml:Hugo"
+  "hugo.json:Hugo"
+  "config.toml:Hugo (legacy config)"
 )
 
 for entry in "${STACK_FILES[@]}"; do
