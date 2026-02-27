@@ -7,9 +7,13 @@ Unlike Claude's built-in `/init` command, claudit runs deterministic scripts aga
 ## What it does
 
 - **Audit mode**: Finds every `CLAUDE.md` in your project tree, runs security and structure scans, reconciles documented commands/directories against the real codebase, scores each file (A-F), and writes a consolidated findings report.
-- **Generation mode**: When no `CLAUDE.md` exists, analyzes the codebase and generates a starter file populated with detected stack, build commands, directory structure, and security guardrails.
+- **Generation mode**: When no `CLAUDE.md` exists, analyzes the codebase and writes a `CLAUDE.md.draft` populated with detected stack, build commands, directory structure, and security guardrails. Review it and rename when ready:
 
-The report is saved as `CLAUDE-AUDIT-YYYY-MM-DD-vN.md` in your project root. Existing files are never modified — findings go in the report only.
+  ```bash
+  mv CLAUDE.md.draft CLAUDE.md
+  ```
+
+The report is saved as `CLAUDE-AUDIT-YYYY-MM-DD-vN.md` in your project root. Claudit never writes to `CLAUDE.md` directly — existing files are never modified.
 
 ## Installation
 
@@ -26,11 +30,7 @@ The report is saved as `CLAUDE-AUDIT-YYYY-MM-DD-vN.md` in your project root. Exi
    chmod +x scripts/scan_secrets.sh scripts/scan_structure.sh scripts/reconcile_codebase.sh
    ```
 
-3. The skill is now available in Claude Code. Trigger it by asking Claude to audit your `CLAUDE.md`, or by saying things like:
-   - "audit my CLAUDE.md"
-   - "CLAUDE.md isn't working"
-   - "onboarding to Claude Code"
-   - "CLAUDE.md best practices"
+3. The skill is now available in Claude Code. Invoke it with `/claudit`. Claude may also invoke it automatically when your request matches the skill description (e.g., asking about CLAUDE.md auditing or best practices), but `/claudit` is the only guaranteed trigger.
 
 ## Project structure
 

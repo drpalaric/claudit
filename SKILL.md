@@ -1,11 +1,11 @@
 ---
 name: claudit
-description: Use when auditing, reviewing, improving, or checking CLAUDE.md files. Also trigger when the user says 'Claude is ignoring instructions', 'CLAUDE.md isn't working', 'onboarding to Claude Code', 'secret scanning config files', or 'CLAUDE.md best practices'. Traverses the full project tree, audits all CLAUDE.md files found, and produces a consolidated report. If no CLAUDE.md files exist, analyzes the codebase and generates a starter file based on audit findings.
+description: Use when auditing, reviewing, improving, or checking CLAUDE.md files. Also trigger when the user says 'Claude is ignoring instructions', 'CLAUDE.md isn't working', 'onboarding to Claude Code', 'secret scanning config files', or 'CLAUDE.md best practices'. Traverses the full project tree, audits all CLAUDE.md files found, and produces a consolidated report. If no CLAUDE.md files exist, analyzes the codebase and writes a starter `CLAUDE.md.draft` for the user to review and rename.
 ---
 
 # Claudit — CLAUDE.md Audit Skill
 
-Traverse a project tree, audit every `CLAUDE.md` file found, and produce a single consolidated findings report. If no `CLAUDE.md` files exist anywhere in the project, analyze the codebase, produce the report, and generate a starter `CLAUDE.md` derived from the report's findings.
+Traverse a project tree, audit every `CLAUDE.md` file found, and produce a single consolidated findings report. If no `CLAUDE.md` files exist anywhere in the project, analyze the codebase and write a starter `CLAUDE.md.draft` for the user to review and rename.
 
 ## Role
 
@@ -17,8 +17,8 @@ You are a senior engineering productivity and security consultant. Return struct
 
 These constraints apply to every claudit invocation regardless of context:
 
-- **Write only two file types:** the audit report (`CLAUDE-AUDIT-YYYY-MM-DD-vN.md`) and, when no CLAUDE.md files exist anywhere in the project, a starter `CLAUDE.md`. No other files are created.
-- **Never modify existing files.** Do not edit, overwrite, or append to any existing CLAUDE.md, rule file, settings.json, or any other project file. Findings go in the report only.
+- **Write only two file types:** the audit report (`CLAUDE-AUDIT-YYYY-MM-DD-vN.md`) and, in generation mode only, a draft starter file (`CLAUDE.md.draft`). **Never write to `CLAUDE.md` directly.**
+- **Never create or modify a CLAUDE.md file.** Do not write, overwrite, or append to any `CLAUDE.md`, rule file, settings.json, or any other project file. The user renames `CLAUDE.md.draft` to `CLAUDE.md` themselves when ready.
 - **Never execute project commands without explicit user confirmation.** During codebase reconciliation, verify command existence (check package.json scripts, Makefile targets, etc.) but do not run build, test, or lint commands unless the user confirms.
 - **Never read .env file values.** Only report that .env files exist and which variable names they define. Do not read, display, or log the values.
 - **Never read or display secret values** found during scanning. Report the line number, the pattern type, and the remediation — not the secret itself.
@@ -125,10 +125,10 @@ The audit report from Step 5 is the source of truth. The generated CLAUDE.md is 
 3. For the directory structure section, apply the completeness criteria from `references/architecture-checks.md` criterion 1 (Codebase map): every depth-1 and depth-2 directory from reconciliation must appear, depth-3 uses `{pattern}/` grouping where siblings repeat. Annotate each entry with its purpose
 4. Address the HIGH and CRITICAL findings from the report — if the report says "missing build commands" and the reconciliation found them in package.json, include them
 5. Do not include speculative content. If the reconciliation didn't detect it, don't invent it. Leave placeholder brackets for anything the user needs to fill in
-6. Write the file to `CLAUDE.md` in the project root
-7. **Verify directory completeness**: Compare the directory structure you wrote against the reconciliation output's "Directory Counts" section. Count the depth-1 and depth-2 entries in your generated tree. If your count is lower, find the missing directories and add them
+6. **Verify directory completeness**: Compare the directory structure against the reconciliation output's "Directory Counts" section. Count the depth-1 and depth-2 entries. If your count is lower, find the missing directories and add them
+7. Write the file to `CLAUDE.md.draft` in the project root. **Never write to `CLAUDE.md` directly.** Add a note to the audit report's summary: "A starter file has been written to `CLAUDE.md.draft`. Review it and rename to `CLAUDE.md` when ready."
 
-The user reads the report to understand what matters, then modifies the generated file based on their own knowledge of the project.
+The user reviews the draft, makes any changes, and renames it to `CLAUDE.md` themselves.
 
 ---
 
