@@ -14,7 +14,7 @@ Test:    [exact command]
 Lint:    [exact command]
 
 ## Directory structure
-[Tree of all significant directories with one-line purpose for each — include every top-level directory and important subdirectories from the reconciliation output]
+[Tree of ALL directories from reconciliation output — every depth-1 and depth-2 directory must appear, with one-line purpose for each. For depth-3, include individually unless many siblings follow a pattern (use {pattern}/ placeholder)]
 
 ## Key constraints
 - [Most important architectural rule — e.g., "services never call the database directly"]

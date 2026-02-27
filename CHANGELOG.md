@@ -1,5 +1,23 @@
 # Changelog
 
+## 2026-02-27 (v3)
+
+### Fixed
+
+- **SKILL.md** (Step 7, item 3): Removed the word "significant" which gave Claude license to filter directories. Now requires every depth-1 and depth-2 directory from reconciliation output. Depth-3 directories are included individually unless many siblings follow a pattern (e.g., per-product dirs), in which case a `{pattern}/` placeholder is used.
+
+- **references/templates.md**: Tightened directory structure placeholder to match — removed "significant", added explicit depth rules and `{pattern}/` guidance.
+
+### Files Changed
+
+| File | Change Type |
+|---|---|
+| `SKILL.md` | Modified (Step 7 item 3: removed "significant", added depth rules) |
+| `references/templates.md` | Modified (tightened directory placeholder) |
+| `CHANGELOG.md` | Updated |
+
+---
+
 ## 2026-02-27 (v2)
 
 ### Fixed

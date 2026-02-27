@@ -122,7 +122,7 @@ The audit report from Step 5 is the source of truth. The generated CLAUDE.md is 
 
 1. Start with the Minimum Viable template from `references/templates.md`
 2. Populate it with concrete information discovered during reconciliation: detected stack, command names found in package.json/Makefile, environment variable names from .env.example
-3. For the directory structure section, include ALL significant directories from the reconciliation output — not just top-level directories. Annotate each with its purpose. The tree should reflect the project's actual organizational depth
+3. For the directory structure section, include ALL directories from the reconciliation output — every depth-1 and depth-2 directory must appear. For depth-3 directories, include each one individually unless there are many siblings following a clear pattern (e.g., per-product directories), in which case use a `{pattern}/` placeholder. Annotate each entry with its purpose
 4. Address the HIGH and CRITICAL findings from the report — if the report says "missing build commands" and the reconciliation found them in package.json, include them
 5. Do not include speculative content. If the reconciliation didn't detect it, don't invent it. Leave placeholder brackets for anything the user needs to fill in
 6. Write the file to `CLAUDE.md` in the project root
